@@ -12,6 +12,7 @@ namespace SettingsConfig
         private List<Setting> SettingsList { get; } = new();
 
         public IEnumerable<Setting> Settings => SettingsList.AsReadOnly();
+        public IEnumerable<ParserError> Errors { get; private set; }
 
         public Setting this[string key] => SettingsList.FirstOrDefault(s => s.Key == key);
 
@@ -20,8 +21,17 @@ namespace SettingsConfig
             SettingsList.AddRange(settings);
         }
 
-        public static SettingsDocument FromText(string text) => new SettingsParser(text).Parse();
-        public static SettingsDocument FromStream(Stream stream) => new SettingsParser(stream).Parse();
+        public static SettingsDocument FromText(string text) => FromParser(new SettingsParser(text));
+        public static SettingsDocument FromStream(Stream stream) => FromParser(new SettingsParser(stream));
+
+        public static SettingsDocument FromParser(SettingsParser parser)
+        {
+            var document = parser.Parse();
+
+            document.Errors = parser.Errors;
+
+            return document;
+        }
         
         public void AddSetting(Setting setting) => SettingsList.Add(setting);
         public bool RemoveSetting(Setting setting) => SettingsList.Remove(setting);
