@@ -12,12 +12,19 @@ namespace SettingsConfig_Tests
         [Test]
         public void TestDeserializer()
         {
-            var document = new SettingsParser("name=\"Bru\" text=\"Matou\"").Parse();
+            var document = new SettingsParser("name=\"Bru\" text=\"Matou\" ignorable=500").Parse();
             var type = SettingsDeserializer.Deserialize<TestType>(document);
             
-            Console.WriteLine(type.Name);
-            Console.WriteLine(type.Text);
-            Assert.True(type.Name == "Bru" && type.Text == "Matou");
+            Assert.True(type.Name == "Bru" && type.Text == "Matou" && type.Ignorable == 0);
+        }
+
+        [Test]
+        public void TestDeserializerNesting()
+        {
+            var document = new SettingsParser("type=[name=\"h\"]").Parse();
+            var type = SettingsDeserializer.Deserialize<TestNestedType>(document);
+            
+            Assert.True(type.Type.Name == "h");
         }
     }
 
@@ -25,5 +32,11 @@ namespace SettingsConfig_Tests
     {
         public string Name { get; set; }
         internal string Text { get; set; }
+        [SettingsDeserializer.Ignore] public int Ignorable { get; set; }
+    }
+
+    public class TestNestedType
+    {
+        public TestType Type { get; set; }
     }
 }

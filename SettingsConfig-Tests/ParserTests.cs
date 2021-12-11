@@ -15,8 +15,6 @@ namespace SettingsConfig_Tests
             var testString = "thing=\"Hello world!\"";
             var setting = new SettingsParser(testString).ParseSettings().First();
             
-            Console.WriteLine(setting.Key);
-            Console.WriteLine(setting.Value.ToString());
             Assert.True(setting.Key == "thing" && setting.Value.ToString() == "Hello world!");
         }
 

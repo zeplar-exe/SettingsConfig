@@ -19,13 +19,11 @@ namespace SettingsConfig.Serialization
                     BindingFlags.Instance |
                     BindingFlags.IgnoreCase);
                 
-                Console.WriteLine(setting.Key);
-                Console.WriteLine(setting.Value.ToString());
-                
-                if (property == null || !property.CanWrite)
+                if (property?.CanWrite != true)
                     continue;
                 
-                Console.WriteLine(property.PropertyType.Name);
+                if (property.GetCustomAttribute<Ignore>() != null)
+                    continue;
 
                 if (setting.Value is TextSetting textSetting)
                 {
@@ -78,17 +76,29 @@ namespace SettingsConfig.Serialization
             return o;
         }
 
+        public static TType DeserializeTree<TType>(SettingTree tree)
+        {
+            return (TType)DeserializeTree(tree, typeof(TType));
+        }
+
         private static object DeserializeTree(SettingTree tree, Type type)
         {
             var o = Activator.CreateInstance(type);
             
             foreach (var setting in tree.Settings)
             {
-                var property = setting.GetType().GetProperty(setting.Key, BindingFlags.IgnoreCase);
+                var property = type.GetProperty(setting.Key, 
+                    BindingFlags.Public |
+                    BindingFlags.NonPublic |
+                    BindingFlags.Instance |
+                    BindingFlags.IgnoreCase);
                 
-                if (property == null)
+                if (property?.CanWrite != true)
                     continue;
-
+                
+                if (property.GetCustomAttribute<Ignore>() != null)
+                    continue;
+                
                 if (setting.Value is TextSetting textSetting)
                 {
                     if (property.PropertyType == typeof(string))
@@ -138,6 +148,16 @@ namespace SettingsConfig.Serialization
             }
 
             return o;
+        }
+        
+        [AttributeUsage(
+            AttributeTargets.Property | 
+            AttributeTargets.Class | 
+            AttributeTargets.Struct | 
+            AttributeTargets.Interface)]
+        public class Ignore : Attribute
+        {
+            
         }
     }
 }

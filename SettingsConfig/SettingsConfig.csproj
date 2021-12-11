@@ -10,6 +10,8 @@
         <RepositoryUrl>https://github.com/zeplar-exe/SettingsConfig</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageVersion>1.1.0</PackageVersion>
+        <PackageReleaseNotes>Created Serialization/SettingsDeserializer</PackageReleaseNotes>
     </PropertyGroup>
 
     <ItemGroup>
