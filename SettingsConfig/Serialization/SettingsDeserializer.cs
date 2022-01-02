@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using SettingsConfig.Settings;
@@ -11,18 +12,18 @@ namespace SettingsConfig.Serialization
         {
             var o = new TType();
 
+            DeserializeTo(document, o);
+
+            return o;
+        }
+        
+        public static void DeserializeTo<TType>(SettingsDocument document, TType o)
+        {
+            var properties = CacheTypeProperties(o.GetType());
+            
             foreach (var setting in document.Settings)
             {
-                var property = typeof(TType).GetProperty(setting.Key, 
-                    BindingFlags.Public |
-                    BindingFlags.NonPublic |
-                    BindingFlags.Instance |
-                    BindingFlags.IgnoreCase);
-                
-                if (property?.CanWrite != true)
-                    continue;
-                
-                if (property.GetCustomAttribute<Ignore>() != null)
+                if (!properties.TryGetValue(setting.Key, out var property))
                     continue;
 
                 if (setting.Value is TextSetting textSetting)
@@ -72,10 +73,8 @@ namespace SettingsConfig.Serialization
                     }
                 }
             }
-
-            return o;
         }
-
+        
         public static TType DeserializeTree<TType>(SettingTree tree)
         {
             return (TType)DeserializeTree(tree, typeof(TType));
@@ -84,21 +83,20 @@ namespace SettingsConfig.Serialization
         private static object DeserializeTree(SettingTree tree, Type type)
         {
             var o = Activator.CreateInstance(type);
+
+            DeserializeTreeTo(tree, o);
+
+            return o;
+        }
+
+        public static void DeserializeTreeTo<TType>(SettingTree tree, TType o)
+        {
+            var properties = CacheTypeProperties(o.GetType());
             
             foreach (var setting in tree.Settings)
             {
-                var property = type.GetProperty(setting.Key, 
-                    BindingFlags.Public |
-                    BindingFlags.NonPublic |
-                    BindingFlags.Instance |
-                    BindingFlags.IgnoreCase);
-                
-                if (property?.CanWrite != true)
-                    continue;
-                
-                if (property.GetCustomAttribute<Ignore>() != null)
-                    continue;
-                
+                var property = properties[setting.Key.ToLower()];
+
                 if (setting.Value is TextSetting textSetting)
                 {
                     if (property.PropertyType == typeof(string))
@@ -146,18 +144,58 @@ namespace SettingsConfig.Serialization
                     }
                 }
             }
-
-            return o;
         }
-        
+
+        private static Dictionary<string, PropertyInfo> CacheTypeProperties(Type type)
+        {
+            var properties = new Dictionary<string, PropertyInfo>();
+
+            foreach (var p in type.GetProperties(
+                         BindingFlags.Public |
+                         BindingFlags.NonPublic |
+                         BindingFlags.Instance))
+            {
+                if (!p.CanWrite)
+                    continue;
+                
+                if (p.GetCustomAttribute<Ignore>() != null)
+                    continue;
+
+                var propertyName = p.Name;
+                var nameAttribute = p.GetCustomAttribute<SerializationName>();
+
+                if (nameAttribute != null)
+                    propertyName = nameAttribute.Name;
+
+                properties[propertyName.ToLower()] = p;
+            }
+
+            return properties;
+        }
+
         [AttributeUsage(
             AttributeTargets.Property | 
             AttributeTargets.Class | 
-            AttributeTargets.Struct | 
-            AttributeTargets.Interface)]
+            AttributeTargets.Struct |
+            AttributeTargets.Enum)]
         public class Ignore : Attribute
         {
             
+        }
+
+        [AttributeUsage(
+            AttributeTargets.Property | 
+            AttributeTargets.Class | 
+            AttributeTargets.Struct |
+            AttributeTargets.Enum)]
+        public class SerializationName : Attribute
+        {
+            public string Name { get; }
+            
+            public SerializationName(string name)
+            {
+                Name = name;
+            }
         }
     }
 }

@@ -26,6 +26,15 @@ namespace SettingsConfig_Tests
             
             Assert.True(type.Type.Name == "h");
         }
+
+        [Test]
+        public void TestDeserializerName()
+        {
+            var document = new SettingsParser("some_property=\"AYO\"").ParseDocument();
+            var type = SettingsDeserializer.Deserialize<TestCustomNamesType>(document);
+            
+            Assert.True(type.ThisIsAProperty == "AYO");
+        }
     }
 
     public class TestType
@@ -33,6 +42,12 @@ namespace SettingsConfig_Tests
         public string Name { get; set; }
         internal string Text { get; set; }
         [SettingsDeserializer.Ignore] public int Ignorable { get; set; }
+    }
+
+    public class TestCustomNamesType
+    {
+        [SettingsDeserializer.SerializationName("some_property")]
+        public string ThisIsAProperty { get; set; }
     }
 
     public class TestNestedType
