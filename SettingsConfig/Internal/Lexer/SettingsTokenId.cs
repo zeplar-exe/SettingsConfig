@@ -14,7 +14,6 @@ namespace SettingsConfig.Internal.Lexer
         BooleanTrue,
         BooleanFalse,
         
-        IsOperator,
         IfKeyword,
         OrKeyword,
         AndKeyword,
@@ -32,6 +31,6 @@ namespace SettingsConfig.Internal.Lexer
         Period,
         Equals,
         
-        DoubleQuote
+        EndOfFile
     }
 }

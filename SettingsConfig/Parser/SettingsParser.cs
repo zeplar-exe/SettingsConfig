@@ -11,38 +11,42 @@ namespace SettingsConfig.Parser
 {
     public class SettingsParser
     {
-        private readonly EnumerableNavigator<SettingsToken> navigator;
+        private EnumerableNavigator<SettingsToken> Navigator { get; }
 
-        private readonly List<ParserError> errors = new();
+        private readonly List<ParserError> b_errors;
 
-        public IEnumerable<ParserError> Errors => errors.AsReadOnly();
+        public IEnumerable<ParserError> Errors => b_errors.AsReadOnly();
 
         public SettingsParser(Stream stream)
         {
-            using var reader = new StreamReader(stream, leaveOpen: true);
-
-            navigator = new SettingsLexer(reader.ReadToEnd()).Lex().ToNavigator();
+            b_errors = new List<ParserError>();
+            
+            using var reader = new StreamReader(stream);
+            
+            Navigator = new SettingsLexer(reader.ReadToEnd()).Lex().ToNavigator();
         }
         
         public SettingsParser(string text)
         {
-            navigator = new SettingsLexer(text).Lex().ToNavigator();
+            b_errors = new List<ParserError>();
+            
+            Navigator = new SettingsLexer(text).Lex().ToNavigator();
         }
 
-        public SettingsDocument Parse()
+        public SettingsDocument ParseDocument()
         {
-            return new SettingsDocument(ParseSettings());
+            return SettingsDocument.FromParser(this);
         }
         
-        public IEnumerable<Setting> ParseSettings()
+        public IEnumerable<SettingsNode> ParseSyntaxTree()
         {
-            foreach (var token in navigator.EnumerateFromIndex())
+            foreach (var token in Navigator.EnumerateFromIndex())
             {
                 switch (token.Id)
                 {
                     case SettingsTokenId.Identifier:
                     {
-                        if (TryParseSetting(token, out var setting))
+                        if (TryParseSetting(new IdentifierNode(token), out var setting))
                             yield return setting;
                         
                         break;
@@ -56,56 +60,55 @@ namespace SettingsConfig.Parser
             }
         }
 
-        private SettingTree ParseTree()
+        private bool TryParseSetting(IdentifierNode identifier, out SettingsNode node)
         {
-            var children = new List<Setting>();
-
-            foreach (var token in navigator.EnumerateFromIndex())
+            node = default;
+            
+            if (TryParseSettingAssignment(identifier, out var token))
             {
-                switch (token.Id)
-                {
-                    case SettingsTokenId.Identifier:
-                        if (TryParseSetting(token, out var setting))
-                            children.Add(setting);
-                        break;
-                    case SettingsTokenId.CloseBracket:
-                        return new SettingTree(children);
-                }
+                node = token;
+                
+                return true;
             }
 
-            return new SettingTree(children);
+            return false;
         }
 
-        private bool TryParseSetting(SettingsToken name, out Setting setting)
+        private bool TryParseSettingAssignment(IdentifierNode identifier, out SettingAssignmentExpression expression)
         {
-            setting = default;
+            expression = default;
             
-            if (!navigator.TryMoveNext(out var equalsToken) || !equalsToken.Is(SettingsTokenId.Equals))
+            if (!Navigator.TakeIf(t => t.Is(SettingsTokenId.Equals), out var equalsToken))
             {
                 ReportError("Expected a '='");
                 
                 return false;
             }
-
-            if (navigator.TakeIf(t => t.Is(SettingsTokenId.OpenCurlyBracket), out _))
+            
+            SettingAssignmentExpression CreateExpression(SettingValueNode valueNode)
             {
-                setting = new Setting(name.ToString(), ParseMethod(), name.Context);
+                return new SettingAssignmentExpression(identifier, equalsToken, valueNode);
+            }
+            
+            if (Navigator.TakeIf(t => t.Is(SettingsTokenId.OpenCurlyBracket), out var curlyBracket))
+            {
+                expression = CreateExpression(ParseMethod(curlyBracket));
 
                 return true;
             }
             
-            if (navigator.TakeIf(t => t.Is(SettingsTokenId.OpenBracket), out _))
+            if (Navigator.TakeIf(t => t.Is(SettingsTokenId.OpenBracket), out var openBracket))
             {
-                setting = new Setting(name.ToString(), ParseTree(), name.Context);
+                expression = CreateExpression(ParseTree(openBracket));
 
                 return true;
             }
 
-            if (!navigator.TryMoveNext(out var literalToken) || !literalToken.IsLiteral())
+            if (!Navigator.TryMoveNext(out var literalToken) || !literalToken.IsLiteral())
             {
-                ReportError("Expected a literal value.");
-                
-                setting = new Setting(name.ToString(), new UnknownSetting(literalToken.ToString()), name.Context);
+                ReportError("Expected a value.");
+
+                expression = CreateExpression(new UnknownNode(literalToken));
 
                 return true;
             }
@@ -113,83 +116,58 @@ namespace SettingsConfig.Parser
             switch (literalToken.Id)
             {
                 case SettingsTokenId.StringLiteral:
-                    setting = Setting.Create(name.ToString(), literalToken.ToString(), name.Context);
+                    expression = CreateExpression(new StringLiteralNode(literalToken));
                     return true;
                 case SettingsTokenId.NumericLiteral:
-                    if (int.TryParse(literalToken.RawToken, out var iResult))
-                        setting = Setting.Create(name.ToString(), iResult, name.Context);
-                    else if (float.TryParse(literalToken.ToString(), out var fResult))
-                        setting = Setting.Create(name.ToString(), fResult, name.Context);
-                    else if (double.TryParse(literalToken.ToString(), out var dResult))
-                        setting = Setting.Create(name.ToString(), dResult, name.Context);
-                    else
-                        return false;
+                    expression = CreateExpression(new NumericLiteralNode(literalToken));
                     break;
                 case SettingsTokenId.BooleanTrue or SettingsTokenId.BooleanFalse:
-                    setting = Setting.Create(name.ToString(), bool.Parse(literalToken.ToString().ToLower()));
-                    break;
-                default:
-                    setting = new Setting(name.ToString(), new UnknownSetting(literalToken.ToString()), name.Context);
+                    expression = CreateExpression(new BooleanLiteralNode(literalToken));
                     break;
             }
 
             return true;
         }
         
-        private MethodSetting ParseMethod()
+        private SettingTreeNode ParseTree(SettingsToken open)
         {
-            var setting = new MethodSetting();
-            
-            foreach (var block in ParseBlock().Nodes)
-            {
-                // Test if member access, method invocation, etc
-            }
+            var children = new List<SettingAssignmentExpression>();
+            SettingsToken closeBracket = null;
 
-            return setting;
+            foreach (var token in Navigator.EnumerateFromIndex())
+            {
+                switch (token.Id)
+                {
+                    case SettingsTokenId.Identifier:
+                        if (TryParseSettingAssignment(new IdentifierNode(token), out var assignment))
+                            children.Add(assignment);
+                        break;
+                    case SettingsTokenId.CloseBracket:
+                        closeBracket = token;
+                        goto TreeClosed;
+                }
+            }
+            
+            TreeClosed:
+
+            return new SettingTreeNode(open, children, closeBracket);
         }
-
-        private BlockNode ParseBlock()
+        
+        private MethodNode ParseMethod(SettingsToken openCurlyBracket)
         {
-            var node = new BlockNode(navigator.Current.Context);
+            _ = Navigator.TakeWhile(t => !t.Is(SettingsTokenId.CloseCurlyBracket));
+            Navigator.TryMoveNext(out var close);
             
-            foreach (var token in navigator.EnumerateFromIndex())
-            {
-                if (token.Is(SettingsTokenId.CloseCurlyBracket))
-                    break;
+            var node = new MethodNode(openCurlyBracket, close);
 
-                if (token.Is(SettingsTokenId.Identifier)) 
-                {
-                    if (navigator.TakeIf(t => t.Is(SettingsTokenId.Period), out _))
-                    {
-                        
-                    }
-                }
-                else if (token.IsLogical())
-                {
-                    if (!navigator.TakeIf(t => t.Is(SettingsTokenId.OpenCurlyBracket), out _))
-                    {
-                        ReportError("Expected a '{'");
-                        continue;
-                    }
-                    
-                    node.AddNode(ParseBlock());
-                }
-                else if (token.IsControl())
-                {
-                    
-                }
-                else
-                {
-                    ReportError("Unexpected token.");
-                }
-            }
-
+            // TODO:
+            
             return node;
         }
 
         private void ReportError(string message)
         {
-            errors.Add(new ParserError(message, navigator.Current.Context));
+            b_errors.Add(new ParserError(message, Navigator.Current.Context));
         }
     }
 }

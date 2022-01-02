@@ -6,13 +6,16 @@ namespace SettingsConfig.Settings
 {
     public class SettingTree : SettingValue
     {
-        public IEnumerable<Setting> Settings { get; }
+        private readonly List<Setting> b_settings;
+
+        public IEnumerable<Setting> Settings => b_settings;
         
-        public Setting this[string key] => Settings.FirstOrDefault(s => s.Key == key);
+        public IEnumerable<Setting> this[string key] => Settings.Where(s => s.Key == key);
         
         public SettingTree(IEnumerable<Setting> settings)
         {
-            Settings = settings;
+            b_settings = new List<Setting>();
+            b_settings.AddRange(settings);
         }
 
         public override string ToString()
@@ -22,8 +25,10 @@ namespace SettingsConfig.Settings
             builder.Append('[');
 
             foreach (var setting in Settings)
+            {
                 builder.AppendLine(setting.ToString());
-            
+            }
+
             builder.Append(']');
             
             return builder.ToString();

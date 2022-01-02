@@ -4,14 +4,14 @@ namespace SettingsConfig.Internal.Lexer
 {
     public readonly struct LexerError
     {
-        public readonly string Message;
-        public readonly string Text;
-        public readonly StringContext Context;
+        public string Message { get; }
+        public SettingsToken Token { get; }
+        public StringContext Context { get; }
 
-        public LexerError(string message, string text, StringContext context)
+        public LexerError(string message, SettingsToken token, StringContext context)
         {
             Message = message;
-            Text = text;
+            Token = token;
             Context = context;
         }
     }

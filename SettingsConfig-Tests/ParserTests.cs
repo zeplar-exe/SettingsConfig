@@ -13,7 +13,7 @@ namespace SettingsConfig_Tests
         public void TestTextSetting()
         {
             var testString = "thing=\"Hello world!\"";
-            var setting = new SettingsParser(testString).ParseSettings().First();
+            var setting = new SettingsParser(testString).ParseDocument().Settings.First();
             
             Assert.True(setting.Key == "thing" && setting.Value.ToString() == "Hello world!");
         }
@@ -22,7 +22,7 @@ namespace SettingsConfig_Tests
         public void TestNumericTextSetting()
         {
             var testString = "thing=12.34";
-            var setting = new SettingsParser(testString).ParseSettings().First();
+            var setting = new SettingsParser(testString).ParseDocument().Settings.First();
             
             Assert.True(setting.Key == "thing" && setting.Value.ToString().StartsWith("12.34"));
         }
@@ -31,7 +31,7 @@ namespace SettingsConfig_Tests
         public void TestBooleanSetting()
         {
             var testString = "thing=TRUE";
-            var setting = new SettingsParser(testString).ParseSettings().First();
+            var setting = new SettingsParser(testString).ParseDocument().Settings.First();
             
             Assert.True(setting.Value is BooleanSetting { Value: true });
         }
@@ -40,7 +40,7 @@ namespace SettingsConfig_Tests
         public void TestTreeSetting()
         {
             var testString = "thing=[ a=\"abc\" b=\"def\" ]";
-            var setting = new SettingsParser(testString).ParseSettings().First();
+            var setting = new SettingsParser(testString).ParseDocument().Settings.First();
             var value = (SettingTree)setting.Value;
             
             Assert.True(value.Settings.ElementAt(1).Value.ToString() == "def");

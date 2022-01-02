@@ -7,15 +7,11 @@ namespace SettingsConfig.Internal.Lexer
 {
     public class SettingsLexer
     {
-        private readonly EnumerableNavigator<LexerToken> navigator;
-
-        private readonly List<LexerError> errors = new();
+        private EnumerableNavigator<LexerToken> Navigator { get; }
         
-        public IEnumerable<LexerError> Errors => errors.AsReadOnly();
-
         public SettingsLexer(string text)
         {
-            navigator = new Jammo.ParserTools.Lexing.Lexer(text, new LexerOptions
+            Navigator = new Jammo.ParserTools.Lexing.Lexer(text, new LexerOptions
             {
                 IncludeUnderscoreAsAlphabetic = true,
                 IncludePeriodAsNumeric = true
@@ -23,10 +19,8 @@ namespace SettingsConfig.Internal.Lexer
         }
 
         public IEnumerable<SettingsToken> Lex()
-        {
-            errors.Clear();
-            
-            foreach (var token in navigator.EnumerateFromIndex())
+        {// make abstract lcass for that in ParserTools
+            foreach (var token in Navigator.EnumerateFromIndex())
             {
                 switch (token.Id)
                 {
@@ -72,13 +66,13 @@ namespace SettingsConfig.Internal.Lexer
                     case LexerTokenId.DoubleQuote:
                         var fullString = new List<string>();
                         
-                        navigator.Skip();
+                        Navigator.Skip();
                         
-                        foreach (var stringToken in navigator.EnumerateFromIndex())
+                        foreach (var stringToken in Navigator.EnumerateFromIndex())
                         {
                             if (stringToken.Is(LexerTokenId.DoubleQuote))
                             {
-                                navigator.TryPeekLast(out var last);
+                                Navigator.TryPeekLast(out var last);
                                 
                                 if (!last.Is(LexerTokenId.Backslash))
                                     break;
@@ -93,8 +87,8 @@ namespace SettingsConfig.Internal.Lexer
                         
                         break;
                     case LexerTokenId.Octothorpe:
-                        var comment = navigator.TakeWhile(t => !t.Is(LexerTokenId.Newline));
-                        yield return new SettingsToken(string.Concat(comment), token.Context, SettingsTokenId.Comment);
+                        var comment = Navigator.TakeWhile(t => !t.Is(LexerTokenId.Newline));
+                        yield return CreateToken(string.Concat(comment), SettingsTokenId.Comment);
                         break;
                     case LexerTokenId.Numeric:
                         yield return CreateToken(SettingsTokenId.NumericLiteral);
@@ -121,32 +115,28 @@ namespace SettingsConfig.Internal.Lexer
                         yield return CreateToken(SettingsTokenId.Period);
                         break;
                     case LexerTokenId.Equals:
-                        if (navigator.TakeIf(t => t.Is(LexerTokenId.GreaterThan), out _))
-                        {
-                            yield return CreateToken(SettingsTokenId.IsOperator);
-                            break;
-                        }
-
                         yield return CreateToken(SettingsTokenId.Equals);
                         break;
                     case LexerTokenId.Newline:
                     case LexerTokenId.Whitespace:
                         continue;
                     default:
-                        ReportError("Unexpected token.");
                         yield return CreateToken(SettingsTokenId.Unknown);
                         break;
                 }
             }
+
+            yield return CreateToken("", SettingsTokenId.EndOfFile);
         }
 
         private SettingsToken CreateToken(SettingsTokenId id)
         {
-            return new SettingsToken(navigator.Current.ToString(), navigator.Current.Context, id);
+            return CreateToken(Navigator.Current.ToString(), id);
         }
-        private void ReportError(string message)
+        
+        private SettingsToken CreateToken(string text, SettingsTokenId id)
         {
-            errors.Add(new LexerError(message, navigator.Current.ToString(), navigator.Current.Context));
+            return new SettingsToken(text, Navigator.Current.Context, id);
         }
     }
 }

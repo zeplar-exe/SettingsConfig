@@ -3,22 +3,58 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using SettingsConfig.Parser;
+using SettingsConfig.Parser.Nodes;
 using SettingsConfig.Settings;
 
 namespace SettingsConfig
 {
     public class SettingsDocument
     {
-        private List<Setting> SettingsList { get; } = new();
+        private readonly List<ParserError> b_errors;
+        private List<Setting> b_settings;
 
-        public IEnumerable<Setting> Settings => SettingsList.AsReadOnly();
-        public IEnumerable<ParserError> Errors { get; private set; }
+        public IEnumerable<Setting> Settings => b_settings;
+        public IEnumerable<ParserError> Errors => b_errors;
 
-        public Setting this[string key] => SettingsList.FirstOrDefault(s => s.Key == key);
+        public Setting this[string key] => b_settings.FirstOrDefault(s => s.Key == key);
 
-        public SettingsDocument(IEnumerable<Setting> settings)
+        private SettingsDocument(IEnumerable<SettingsNode> nodes, IEnumerable<ParserError> errors)
         {
-            SettingsList.AddRange(settings);
+            b_errors = new List<ParserError>();
+            b_errors.AddRange(errors);
+            
+            b_settings = new List<Setting>();
+            b_settings.AddRange(nodes.Select(ParseSetting).Where(n => n != null));
+        }
+
+        private Setting ParseSetting(SettingsNode node)
+        {
+            switch (node)
+            {
+                case SettingAssignmentExpression assignmentExpression:
+                    switch (assignmentExpression.ValueNode)
+                    {
+                        case StringLiteralNode stringLiteral:
+                            return new Setting(
+                                assignmentExpression.Name.ToString(), 
+                                new TextSetting(stringLiteral.Value));
+                        case NumericLiteralNode numericLiteral:
+                            return new Setting(
+                                assignmentExpression.Name.ToString(), 
+                                new NumericSetting(numericLiteral.Value));
+                        case BooleanLiteralNode booleanLiteral:
+                            return new Setting(
+                                assignmentExpression.Name.ToString(), 
+                                new BooleanSetting(booleanLiteral.Value));
+                        case SettingTreeNode treeNode:
+                            return new Setting(
+                                assignmentExpression.Name.ToString(),
+                                new SettingTree(treeNode.Assignments.Select(ParseSetting)));
+                    }
+                    break;
+            }
+
+            return null;
         }
 
         public static SettingsDocument FromText(string text) => FromParser(new SettingsParser(text));
@@ -26,21 +62,19 @@ namespace SettingsConfig
 
         public static SettingsDocument FromParser(SettingsParser parser)
         {
-            var document = parser.Parse();
-
-            document.Errors = parser.Errors;
+            var document = new SettingsDocument(parser.ParseSyntaxTree(), parser.Errors);
 
             return document;
         }
         
-        public void AddSetting(Setting setting) => SettingsList.Add(setting);
-        public bool RemoveSetting(Setting setting) => SettingsList.Remove(setting);
+        public void AddSetting(Setting setting) => b_settings.Add(setting);
+        public bool RemoveSetting(Setting setting) => b_settings.Remove(setting);
 
         public override string ToString()
         {
             var builder = new StringBuilder();
 
-            foreach (var setting in SettingsList)
+            foreach (var setting in b_settings)
                 builder.Append(setting);
 
             return builder.ToString();

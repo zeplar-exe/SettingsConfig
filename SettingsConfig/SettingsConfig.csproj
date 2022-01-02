@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
-        <LangVersion>9</LangVersion>
+        <LangVersion>10</LangVersion>
         <Title>SettingsConfig</Title>
         <Authors>zeplar exe</Authors>
         <Description>Basic library for storing settings</Description>
