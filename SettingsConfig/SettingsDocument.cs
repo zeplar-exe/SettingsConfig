@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -17,6 +18,21 @@ namespace SettingsConfig
         public IEnumerable<ParserError> Errors => b_errors;
 
         public Setting this[string key] => b_settings.FirstOrDefault(s => s.Key == key);
+        
+        public static SettingsDocument CreateEmpty()
+        {
+            return new SettingsDocument(Array.Empty<SettingsNode>(), Array.Empty<ParserError>());
+        }
+
+        public static SettingsDocument FromText(string text) => FromParser(new SettingsParser(text));
+        public static SettingsDocument FromStream(Stream stream) => FromParser(new SettingsParser(stream));
+
+        public static SettingsDocument FromParser(SettingsParser parser)
+        {
+            var document = new SettingsDocument(parser.ParseSyntaxTree(), parser.Errors);
+
+            return document;
+        }
 
         private SettingsDocument(IEnumerable<SettingsNode> nodes, IEnumerable<ParserError> errors)
         {
@@ -57,16 +73,6 @@ namespace SettingsConfig
             return null;
         }
 
-        public static SettingsDocument FromText(string text) => FromParser(new SettingsParser(text));
-        public static SettingsDocument FromStream(Stream stream) => FromParser(new SettingsParser(stream));
-
-        public static SettingsDocument FromParser(SettingsParser parser)
-        {
-            var document = new SettingsDocument(parser.ParseSyntaxTree(), parser.Errors);
-
-            return document;
-        }
-        
         public void AddSetting(Setting setting) => b_settings.Add(setting);
         public bool RemoveSetting(Setting setting) => b_settings.Remove(setting);
 
