@@ -52,7 +52,8 @@ namespace SettingsConfig.Parser
                         break;
                     }
                     case SettingsTokenId.Comment:
-                        continue;
+                        yield return new CommentNode(token);
+                        break;
                     default:
                         ReportError("Unexpected token.");
                         break;

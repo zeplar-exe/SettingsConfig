@@ -19,5 +19,10 @@ namespace SettingsConfig.Parser.Nodes
         {
             return Identifier;
         }
+
+        public override string ToFormattedString()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -19,5 +19,10 @@ namespace SettingsConfig.Parser.Nodes
             EqualsToken = equals;
             ValueNode = value;
         }
+
+        public override string ToFormattedString()
+        {
+            return $"{Name}={ValueNode}";
+        }
     }
 }

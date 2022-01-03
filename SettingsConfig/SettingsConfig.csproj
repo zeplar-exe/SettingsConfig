@@ -10,8 +10,10 @@
         <RepositoryUrl>https://github.com/zeplar-exe/SettingsConfig</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <PackageVersion>1.1.0</PackageVersion>
-        <PackageReleaseNotes>Created Serialization/SettingsDeserializer</PackageReleaseNotes>
+        <PackageVersion>1.2.2</PackageVersion>
+        <PackageReleaseNotes>Improve SetingsDeserializer
+Add DeserializeTo methods which deserialize directly to an object
+Add SettingsDeserializer.SerializationName, allows for a disconnect between property names and setting names</PackageReleaseNotes>
     </PropertyGroup>
 
     <ItemGroup>

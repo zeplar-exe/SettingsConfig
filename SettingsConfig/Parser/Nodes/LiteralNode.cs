@@ -10,5 +10,7 @@ namespace SettingsConfig.Parser.Nodes
         {
             LiteralToken = token;
         }
+
+        public abstract override string ToString();
     }
 }

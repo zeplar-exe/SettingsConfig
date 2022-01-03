@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Jammo.ParserTools;
 using SettingsConfig.Internal.Lexer;
 
@@ -23,6 +24,20 @@ namespace SettingsConfig.Parser.Nodes
             OpenBracket = open;
             CloseBracket = close;
             b_assignments = nodes.ToArray();
+        }
+
+        public override string ToFormattedString()
+        {
+            var builder = new StringBuilder();
+
+            builder.AppendLine(OpenBracket.ToString());
+            foreach (var assignment in Assignments)
+            {
+                builder.AppendLine(assignment.ToFormattedString());
+            }
+            builder.AppendLine(CloseBracket.ToString());
+
+            return builder.ToString();
         }
     }
 }

@@ -19,5 +19,7 @@ namespace SettingsConfig.Parser.Nodes
             if (!token.Is(expected))
                 throw new ArgumentException($"Expected {expected}, got '{token.Id}'");
         }
+
+        public abstract string ToFormattedString();
     }
 }

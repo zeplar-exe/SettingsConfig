@@ -5,10 +5,18 @@ namespace SettingsConfig.Parser.Nodes;
 
 public class CommentNode : SettingsNode
 {
-    public SettingsToken Token { get; }
+    public SettingsToken Comment { get; }
+    public string CommentString => Comment.ToString();
     
-    public CommentNode(SettingsToken token) : base(token.Context)
+    public CommentNode(SettingsToken comment) : base(comment.Context)
     {
-        Token = token;
+        ThrowIfInvalidToken(comment, SettingsTokenId.Comment);
+        
+        Comment = comment;
+    }
+
+    public override string ToFormattedString()
+    {
+        throw new System.NotImplementedException();
     }
 }

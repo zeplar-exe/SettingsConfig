@@ -13,5 +13,15 @@ namespace SettingsConfig.Parser.Nodes
 
             Value = token.ToString();
         }
+
+        public override string ToFormattedString()
+        {
+            return Value;
+        }
+
+        public override string ToString()
+        {
+            return Value;
+        }
     }
 }

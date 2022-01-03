@@ -15,4 +15,9 @@ public class MethodNode : SettingValueNode
         
         // TODO: Add functionality
     }
+
+    public override string ToFormattedString()
+    {
+        return $"{OpenCurlyBracket}{CloseCurlyBracket}";
+    }
 }

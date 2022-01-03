@@ -11,4 +11,9 @@ public class UnknownNode : SettingValueNode
     {
         Token = token;
     }
+
+    public override string ToFormattedString()
+    {
+        return Token.ToString();
+    }
 }
