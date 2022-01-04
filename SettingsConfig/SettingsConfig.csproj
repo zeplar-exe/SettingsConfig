@@ -10,14 +10,12 @@
         <RepositoryUrl>https://github.com/zeplar-exe/SettingsConfig</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <PackageVersion>1.2.2</PackageVersion>
-        <PackageReleaseNotes>Improve SetingsDeserializer
-Add DeserializeTo methods which deserialize directly to an object
-Add SettingsDeserializer.SerializationName, allows for a disconnect between property names and setting names</PackageReleaseNotes>
+        <PackageVersion>1.2.3</PackageVersion>
+        <PackageReleaseNotes>Add SettingsSerializer</PackageReleaseNotes>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Jammo.ParserTools" Version="1.7.0" />
+      <PackageReference Include="Jammo.ParserTools" Version="1.7.2" />
     </ItemGroup>
 
 </Project>
