@@ -95,7 +95,8 @@ namespace SettingsConfig.Serialization
             
             foreach (var setting in tree.Settings)
             {
-                var property = properties[setting.Key.ToLower()];
+                if (!properties.TryGetValue(setting.Key.ToLower(), out var property))
+                    return;
 
                 if (setting.Value is TextSetting textSetting)
                 {

@@ -10,8 +10,8 @@
         <RepositoryUrl>https://github.com/zeplar-exe/SettingsConfig</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <PackageVersion>1.2.3</PackageVersion>
-        <PackageReleaseNotes>Add SettingsSerializer</PackageReleaseNotes>
+        <PackageVersion>1.2.4</PackageVersion>
+        <PackageReleaseNotes>Update to Jammo.ParserTools 1.7.2</PackageReleaseNotes>
     </PropertyGroup>
 
     <ItemGroup>
