@@ -19,6 +19,16 @@ namespace SettingsConfig.Serialization
         
         public static void DeserializeTo<TType>(SettingsDocument document, TType o)
         {
+            if (o is IDictionary<string, SettingValue> dictionary)
+            {
+                foreach (var setting in document.Settings)
+                {
+                    dictionary[setting.Key] = setting.Value;
+                }
+                
+                return;
+            }
+            
             var properties = CacheTypeProperties(o.GetType());
             
             foreach (var setting in document.Settings)
@@ -64,13 +74,9 @@ namespace SettingsConfig.Serialization
                 }
                 else if (setting.Value is SettingTree tree)
                 {
-                    var t = property.PropertyType;
-                    var deserialized = DeserializeTree(tree, t);
-
-                    if (property.PropertyType == deserialized.GetType())
-                    {
-                        property.SetValue(o, deserialized);
-                    }
+                    var deserialized = DeserializeTree(tree, property.PropertyType);
+                    
+                    property.SetValue(o, deserialized);
                 }
             }
         }
@@ -91,8 +97,18 @@ namespace SettingsConfig.Serialization
 
         public static void DeserializeTreeTo<TType>(SettingTree tree, TType o)
         {
-            var properties = CacheTypeProperties(o.GetType());
+            if (o is IDictionary<string, SettingValue> dictionary)
+            {
+                foreach (var setting in tree.Settings)
+                {
+                    dictionary[setting.Key] = setting.Value;
+                }
+                
+                return;
+            }
             
+            var properties = CacheTypeProperties(o.GetType());
+
             foreach (var setting in tree.Settings)
             {
                 if (!properties.TryGetValue(setting.Key.ToLower(), out var property))
@@ -137,11 +153,8 @@ namespace SettingsConfig.Serialization
                 else if (setting.Value is SettingTree settingTree)
                 {
                     var deserialized = DeserializeTree(settingTree, property.PropertyType);
-
-                    if (property.PropertyType == deserialized.GetType())
-                    {
-                        property.SetValue(o, deserialized);
-                    }
+                    
+                    property.SetValue(o, deserialized);
                 }
             }
         }

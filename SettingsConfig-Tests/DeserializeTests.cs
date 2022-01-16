@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using NUnit.Framework;
 using SettingsConfig.Parser;
 using SettingsConfig.Serialization;
+using SettingsConfig.Settings;
 
 namespace SettingsConfig_Tests
 {
@@ -35,6 +38,15 @@ namespace SettingsConfig_Tests
             
             Assert.True(type.ThisIsAProperty == "AYO");
         }
+
+        [Test]
+        public void TestDictionaryDeserialize()
+        {
+            var document = new SettingsParser("dictionary=[name=\"h\"]").ParseDocument();
+            var dictionary = SettingsDeserializer.Deserialize<TestDictionaryType>(document);
+            
+            Assert.True(dictionary.Dictionary["name"].ToString() == "h");
+        }
     }
 
     public class TestType
@@ -42,6 +54,11 @@ namespace SettingsConfig_Tests
         public string Name { get; set; }
         internal string Text { get; set; }
         [SettingsDeserializer.Ignore] public int Ignorable { get; set; }
+    }
+
+    public class TestDictionaryType
+    {
+        public Dictionary<string, SettingValue> Dictionary { get; set; }
     }
 
     public class TestCustomNamesType
