@@ -92,6 +92,9 @@ public class SettingsSerializer
                 return Setting.Create(key, sValue);
             case bool bValue:
                 return Setting.Create(key, bValue);
+            case IDictionary<string, SettingValue> dictionary:
+                return new Setting(key, new SettingTree(
+                    dictionary.Select(p => new Setting(p.Key, p.Value))));
             default:
                 return new Setting(key, SerializeTree(value));
         }
