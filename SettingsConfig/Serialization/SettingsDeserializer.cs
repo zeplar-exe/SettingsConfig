@@ -136,8 +136,7 @@ namespace SettingsConfig.Serialization
                 }
                 else if (setting.Value is SettingTree settingTree)
                 {
-                    var t = property.PropertyType;
-                    var deserialized = DeserializeTree(settingTree, t);
+                    var deserialized = DeserializeTree(settingTree, property.PropertyType);
 
                     if (property.PropertyType == deserialized.GetType())
                     {
