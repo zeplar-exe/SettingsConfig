@@ -10,8 +10,9 @@
         <RepositoryUrl>https://github.com/zeplar-exe/SettingsConfig</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <PackageVersion>1.2.4</PackageVersion>
-        <PackageReleaseNotes>Update to Jammo.ParserTools 1.7.2</PackageReleaseNotes>
+        <PackageVersion>1.2.5</PackageVersion>
+        <PackageReleaseNotes>Add safety check in SettingTree serialization
+Implement SettingTree serialization and deserialization for IDictionary&lt;string, SettingTree&gt;</PackageReleaseNotes>
     </PropertyGroup>
 
     <ItemGroup>
