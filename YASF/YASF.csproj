@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <LangVersion>10</LangVersion>
+        <Title>SettingsConfig</Title>
+        <Authors>zeplar exe</Authors>
+        <Description>Basic library for storing settings</Description>
+        <PackageLicenseUrl>https://github.com/zeplar-exe/SettingsConfig/blob/master/LICENSE</PackageLicenseUrl>
+        <RepositoryUrl>https://github.com/zeplar-exe/SettingsConfig</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageVersion>1.2.5.1</PackageVersion>
+        <PackageReleaseNotes>Mini update for README.</PackageReleaseNotes>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Jammo.ParserTools" Version="1.7.2" />
+    </ItemGroup>
+
+</Project>

@@ -1,10 +1,8 @@
-# SettingsConfig
+# YASF
 
-Note that SettingsConfig is a temporary, unimprovised name.
+Note that this package is no more than a parser.
 
-Also note that this package is no more than a parser.
-
-SettingsConfig is *yet another storage format* among the likes of JSON and CSV. This one, however, brings a simpler format at the cost of nesting capabilities (which are present, just not as good as JSON's).
+YASF is *yet another storage format* among the likes of JSON and CSV. This one, however, brings a simpler format at the cost of nesting capabilities (which are present, just not as good as JSON's).
 
 <br/>
 
@@ -42,16 +40,16 @@ To install you can:
 
 - Download the DLL from your chosen release version
 - Download and extract the source code into your codebase
-- Download using your preferred package manager (e.g. [nuget](https://www.nuget.org/packages/SettingsConfig/))
+- Download using your preferred package manager (e.g. [nuget](https://www.nuget.org/packages/YASF/))
 
-There are 2 maintained ways of parsing a SettingsConfig document.
+There are 2 maintained ways of parsing a YASF document.
 <br/>
 The most direct and simplest way is using one of `SettingsDocument`'s creation methods: `SettingsDocument.FromText(System.String)`, `SettingsDocument.FromStream(System.IO.Stream)`, `SettingsDocument.FromParser(SettingsConfig.Parser.SettingsParser)`.
 
 Otherwise, you can directly use the parser (`SettingsParser`) to enumerate raw nodes.
 
 ```cs
-var parser = new SettingsConfig.Parser.SettingsParser(MyText);
+var parser = new YASF.Parser.SettingsParser(MyText);
 // System.String and System.IO.Stream are both accepted for initialization
 
 foreach (SettingsConfig.Parser.Nodes.SettingsNode node in parser.ParseSyntaxTree())
