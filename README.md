@@ -1,3 +1,4 @@
+## This project is discontinued
 # YASF
 
 Note that this package is no more than a parser.
